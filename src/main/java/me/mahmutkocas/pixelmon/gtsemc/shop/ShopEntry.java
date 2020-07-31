@@ -87,6 +87,10 @@ public class ShopEntry implements Serializable {
         protected UUID uuid;
 
         // Moves
+        protected String move1;
+        protected String move2;
+        protected String move3;
+        protected String move4;
 
 
         // IVs
@@ -108,7 +112,25 @@ public class ShopEntry implements Serializable {
             isShiny = pokemon.isShiny();
             growth = pokemon.getGrowth().index;
 
-            pokemon.getMoveset()
+            if(pokemon.getMoveset().attacks[0].getMove().getAttackName() != null)
+                move1 = pokemon.getMoveset().attacks[0].getMove().getAttackName();
+            else
+                move1 = null;
+
+            if(pokemon.getMoveset().attacks[1] != null)
+                move2 = pokemon.getMoveset().attacks[1].getMove().getAttackName();
+            else
+                move2 = null;
+
+            if(pokemon.getMoveset().attacks[2] != null)
+                move3 = pokemon.getMoveset().attacks[2].getMove().getAttackName();
+            else
+                move3 = null;
+
+            if(pokemon.getMoveset().attacks[3] != null)
+                move4 = pokemon.getMoveset().attacks[3].getMove().getAttackName();
+            else
+                move4 = null;
 
             if(pokemon.getGender().equals(Gender.Male))
                 gender = "male";

@@ -3,6 +3,7 @@ package me.mahmutkocas.pixelmon.gtsemc.shop;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
+import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
@@ -50,9 +51,9 @@ public class Shop {
         ITextComponent entry = new TextComponentString("\n" + (index+1) + ". " +pokemon.getSpecies().getPokemonName());
         ITextComponent details = new TextComponentTranslation("Details",0);
         details.appendText("\nSeller: " + shopEntry.getPlayerName());
+        details.appendText("\nEMC: " + shopEntry.getEmcValue()).getStyle().setColor(TextFormatting.AQUA);
         if(pokemon.isShiny())
             details.appendText("\nShiny").getStyle().setColor(TextFormatting.YELLOW);
-        details.appendText("\nEMC: " + shopEntry.getEmcValue()).getStyle().setColor(TextFormatting.AQUA);
         details.appendText("\nGender: " + pokemon.getGender().toString()).getStyle().setColor(TextFormatting.AQUA);
         details.appendText("\nAbility: " + pokemon.getAbilityName()).getStyle().setColor(TextFormatting.AQUA);
         details.appendText("\nNature: " + pokemon.getNature().name()).getStyle().setColor(TextFormatting.AQUA);
@@ -62,6 +63,17 @@ public class Shop {
         details.appendText("\nSpecial Attack: " + specialAttack).getStyle().setColor(TextFormatting.DARK_AQUA);
         details.appendText("\nSpecial Defence: " + specialDefence).getStyle().setColor(TextFormatting.DARK_AQUA);
         details.appendText("\nSpeed: " + speed).getStyle().setColor(TextFormatting.DARK_AQUA);
+        details.appendText("\n==MOVES==").getStyle().setColor(TextFormatting.DARK_AQUA);
+
+        int i=1;
+        for(Attack a : pokemon.getMoveset().attacks) {
+            if(a != null)
+                if(a.getMove() != null)
+                    if (a.getMove().getAttackName() != null) {
+                        details.appendText("\n" + i + ". " + a.getMove().getAttackName()).getStyle().setColor(TextFormatting.DARK_AQUA);
+                        i++;
+                    }
+        }
         if(pokemon.isShiny())
             details.getStyle().setColor(TextFormatting.YELLOW);
 
