@@ -86,6 +86,8 @@ public class ShopEntry implements Serializable {
         protected String gender;
         protected UUID uuid;
 
+        // Moves
+
 
         // IVs
         protected int hp;
@@ -105,6 +107,8 @@ public class ShopEntry implements Serializable {
             form = pokemon.getForm();
             isShiny = pokemon.isShiny();
             growth = pokemon.getGrowth().index;
+
+            pokemon.getMoveset()
 
             if(pokemon.getGender().equals(Gender.Male))
                 gender = "male";

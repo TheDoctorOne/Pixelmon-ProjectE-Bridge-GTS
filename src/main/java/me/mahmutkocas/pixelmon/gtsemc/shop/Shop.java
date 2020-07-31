@@ -88,11 +88,14 @@ public class Shop {
     public boolean addShopEntry(EntityPlayer player, int slot, long emc) {
         PlayerPartyStorage partyStorage =  Pixelmon.storageManager.getParty(player.getUniqueID());
         boolean ret = createShopEntry(player, emc,partyStorage.get(slot), Calendar.getInstance().getTimeInMillis());
-        partyStorage.set(slot, null);
+        if(ret)
+            partyStorage.set(slot, null);
         return ret;
     }
 
     private boolean createShopEntry(EntityPlayer player, long EmcValue, Pokemon pokemon, long date) {
+        if(pokemon == null || pokemon.isEgg())
+            return false;
         shopEntries.add(new ShopEntry(player, EmcValue, pokemon, date));
         if(shopFileHandler.writeEntries(shopEntries)) {
             return true;
