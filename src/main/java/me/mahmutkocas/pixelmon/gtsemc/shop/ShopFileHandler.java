@@ -78,7 +78,7 @@ public class ShopFileHandler {
             if(!toPay_file.exists()) {
                 toPay_file.createNewFile();
             }
-            FileOutputStream fos = new FileOutputStream(file);
+            FileOutputStream fos = new FileOutputStream(toPay_file);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(toPay);
             oos.close();

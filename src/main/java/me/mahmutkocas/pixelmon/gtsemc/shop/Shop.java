@@ -2,12 +2,9 @@ package me.mahmutkocas.pixelmon.gtsemc.shop;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
+import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
-import me.mahmutkocas.pixelmon.gtsemc.GtsEmcMain;
 import moze_intel.projecte.api.ProjectEAPI;
 import moze_intel.projecte.api.capabilities.IKnowledgeProvider;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,7 +20,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.UUID;
 
 
 public class Shop {
@@ -41,22 +37,22 @@ public class Shop {
 
         Pokemon pokemon = shopEntry.getPokemon();
 
-        int attack = shopEntry.getPokemonIvs().attack;
-        int defence = shopEntry.getPokemonIvs().defence;
-        int hp = shopEntry.getPokemonIvs().hp;
-        int specialDefence = shopEntry.getPokemonIvs().specialDefence;
-        int specialAttack = shopEntry.getPokemonIvs().specialAttack;
-        int speed = shopEntry.getPokemonIvs().speed;
+        int attack = shopEntry.getPokemonData().attack;
+        int defence = shopEntry.getPokemonData().defence;
+        int hp = shopEntry.getPokemonData().hp;
+        int specialDefence = shopEntry.getPokemonData().specialDefence;
+        int specialAttack = shopEntry.getPokemonData().specialAttack;
+        int speed = shopEntry.getPokemonData().speed;
 
-        ITextComponent entry = new TextComponentString("\n" + (index+1) + ". " +pokemon.getSpecies().getPokemonName());
+        ITextComponent entry = new TextComponentString("\n" + (index+1) + ". " + EnumSpecies.getFromDex(shopEntry.getPokemonData().dex).getPokemonName());
         ITextComponent details = new TextComponentTranslation("Details",0);
         details.appendText("\nSeller: " + shopEntry.getPlayerName());
         details.appendText("\nEMC: " + shopEntry.getEmcValue()).getStyle().setColor(TextFormatting.AQUA);
-        if(pokemon.isShiny())
+        if(shopEntry.getPokemonData().isShiny)
             details.appendText("\nShiny").getStyle().setColor(TextFormatting.YELLOW);
-        details.appendText("\nGender: " + pokemon.getGender().toString()).getStyle().setColor(TextFormatting.AQUA);
-        details.appendText("\nAbility: " + pokemon.getAbilityName()).getStyle().setColor(TextFormatting.AQUA);
-        details.appendText("\nNature: " + pokemon.getNature().name()).getStyle().setColor(TextFormatting.AQUA);
+        details.appendText("\nGender: " + shopEntry.getPokemonData().gender).getStyle().setColor(TextFormatting.AQUA);
+        details.appendText("\nAbility: " + shopEntry.getPokemonData().ability).getStyle().setColor(TextFormatting.AQUA);
+        details.appendText("\nNature: " + shopEntry.getPokemonData().nature).getStyle().setColor(TextFormatting.AQUA);
         details.appendText("\nAttack: " + attack).getStyle().setColor(TextFormatting.DARK_AQUA);
         details.appendText("\nDefence: " + defence).getStyle().setColor(TextFormatting.DARK_AQUA);
         details.appendText("\nHP: " + hp).getStyle().setColor(TextFormatting.DARK_AQUA);
@@ -65,8 +61,18 @@ public class Shop {
         details.appendText("\nSpeed: " + speed).getStyle().setColor(TextFormatting.DARK_AQUA);
         details.appendText("\n==MOVES==").getStyle().setColor(TextFormatting.DARK_AQUA);
 
+        Attack attacks[] = new Attack[4];
+        if(shopEntry.getPokemonData().move1 != null)
+            attacks[0] = new Attack(shopEntry.getPokemonData().move1);
+        if(shopEntry.getPokemonData().move2 != null)
+            attacks[1] = new Attack(shopEntry.getPokemonData().move2);
+        if(shopEntry.getPokemonData().move3 != null)
+            attacks[2] = new Attack(shopEntry.getPokemonData().move3);
+        if(shopEntry.getPokemonData().move4 != null)
+            attacks[3] = new Attack(shopEntry.getPokemonData().move4);
+
         int i=1;
-        for(Attack a : pokemon.getMoveset().attacks) {
+        for(Attack a : attacks) {
             if(a != null)
                 if(a.getMove() != null)
                     if (a.getMove().getAttackName() != null) {
@@ -74,7 +80,7 @@ public class Shop {
                         i++;
                     }
         }
-        if(pokemon.isShiny())
+        if(shopEntry.getPokemonData().isShiny)
             details.getStyle().setColor(TextFormatting.YELLOW);
 
         entry.getStyle().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, details));
@@ -89,9 +95,11 @@ public class Shop {
         for(int i=10*(pageNum-1); i<10+10*(pageNum-1); i++) {
             if(i >= shopEntries.size())
                 break;
-            ITextComponent entry = getEntryDetails(i, shopEntries.get(i));
-            entry.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/gtsemc buy " + i + " " + shopEntries.get(i).getPokemon().getUUID().toString()));
-            page.appendSibling(entry);
+            try {
+                ITextComponent entry = getEntryDetails(i, shopEntries.get(i));
+                entry.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/gtsemc buy " + i + " " + shopEntries.get(i).getPokemon().getUUID().toString()));
+                page.appendSibling(entry);
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         return page;
@@ -109,32 +117,38 @@ public class Shop {
         if(pokemon == null || pokemon.isEgg())
             return false;
         shopEntries.add(new ShopEntry(player, EmcValue, pokemon, date));
-        if(shopFileHandler.writeEntries(shopEntries)) {
-            return true;
-        }
-        return false;
+        return shopFileHandler.writeEntries(shopEntries);
     }
 
     // Player buys - event
     public boolean sellShopEntry(EntityPlayer player, int index, String uuid) {
         ShopEntry entry = shopEntries.get(index);
         IKnowledgeProvider provider = player.getCapability(ProjectEAPI.KNOWLEDGE_CAPABILITY, null);
-        boolean ret = false;
+        boolean ret;
+        if(provider == null)
+            return false;
         if(entry.getEmcValue() + 1 > provider.getEmc()) {
             return false;
         }
         else {
-            provider.setEmc(provider.getEmc() - entry.getEmcValue());
             entry.assignVariables();
             if(entry.getPokemon().getUUID().toString().equals(uuid)) {
                 ret = removeEntry(player, index);
             }
+            else
+                return false;
+            provider.setEmc(provider.getEmc() - entry.getEmcValue());
+
             if(entry.getPlayer() == null) {
                 System.out.println("CAN'T GIVE EMC AMOUNT OF = " + entry.getEmcValue() + " TO " + entry.getPlayerName());
                 toPay.add(entry.getPlayerName() + "," + entry.getEmcValue());
                 shopFileHandler.writeToPay(toPay);
             } else {
                 IKnowledgeProvider provider2 = entry.getPlayer().getCapability(ProjectEAPI.KNOWLEDGE_CAPABILITY, null);
+                if(provider2 == null) {
+                    System.out.println("Couldn't pay to " + entry.getPlayer().getName());
+                    return false;
+                }
                 provider2.setEmc(provider2.getEmc() + entry.getEmcValue());
                 ITextComponent mes = new TextComponentString("Your " + entry.getPokemon().getSpecies().getPokemonName() + " has been sold for " + entry.getEmcValue() +".");
                 mes.getStyle().setColor(TextFormatting.AQUA);
@@ -145,10 +159,6 @@ public class Shop {
             }
             return ret;
         }
-    }
-
-    public ArrayList<ShopEntry> getShopEntries() {
-        return shopEntries;
     }
 
     public ITextComponent getMyListings(EntityPlayer player) {
@@ -199,7 +209,10 @@ public class Shop {
                     if(player.getName().equals(playerName)) {
                         long EMC = Long.parseLong(splited[1]);
                         IKnowledgeProvider provider = player.getCapability(ProjectEAPI.KNOWLEDGE_CAPABILITY, null);
-                        provider.setEmc(provider.getEmc() + EMC);
+                        if(provider != null)
+                            provider.setEmc(provider.getEmc() + EMC);
+                        else
+                            player.sendMessage(new TextComponentString("Your pokemon sold but, can't pay you, contact admins."));
                         player.sendMessage(new TextComponentString("Your pokemon sold for " + EMC + " when you're away!"));
                         System.out.println("To Pay Job for the " + playerName + " for " + EMC + " is done.");
                         toRemove.add(tmp);

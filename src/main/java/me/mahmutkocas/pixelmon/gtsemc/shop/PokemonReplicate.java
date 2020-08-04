@@ -10,7 +10,6 @@ import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.enums.items.EnumPokeballs;
 
-import java.util.ArrayList;
 
 public class PokemonReplicate {
     public static Pokemon generate(ShopEntry.PokemonData pokemonData) {
@@ -29,16 +28,16 @@ public class PokemonReplicate {
         pokemon.setShiny(pokemonData.isShiny);
         pokemon.setGrowth(EnumGrowth.getGrowthFromIndex(pokemonData.growth));
 
-        ArrayList<Attack> newMoveSet = new ArrayList<>();
+        Attack[] attacks = new Attack[4];
         if(pokemonData.move1 != null)
-            newMoveSet.add(new Attack(pokemonData.move1));
+            attacks[0]=new Attack(pokemonData.move1);
         if(pokemonData.move2 != null)
-            newMoveSet.add(new Attack(pokemonData.move2));
+            attacks[1]= new Attack(pokemonData.move2);
         if(pokemonData.move3 != null)
-            newMoveSet.add(new Attack(pokemonData.move3));
+            attacks[2]= new Attack(pokemonData.move3);
         if(pokemonData.move4 != null)
-            newMoveSet.add(new Attack(pokemonData.move4));
-        pokemon.getMoveset().attacks = (Attack[]) newMoveSet.toArray();
+            attacks[3]= new Attack(pokemonData.move4);
+        pokemon.getMoveset().attacks = attacks;
 
         pokemon.getIVs().set(StatsType.HP, pokemonData.hp);
         pokemon.getIVs().set(StatsType.Attack, pokemonData.attack);

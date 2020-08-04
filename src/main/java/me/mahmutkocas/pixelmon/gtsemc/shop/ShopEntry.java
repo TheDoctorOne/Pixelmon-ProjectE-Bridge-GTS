@@ -34,7 +34,6 @@ public class ShopEntry implements Serializable {
         try {
             player = (EntityPlayer) GtsEmcMain.server.getEntityFromUuid(playerUUID);
             pokemon = PokemonReplicate.generate(pokemonData);
-            System.out.println(player.getName());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -53,6 +52,8 @@ public class ShopEntry implements Serializable {
     }
 
     public Pokemon getPokemon() {
+        if(pokemon==null)
+            pokemon = PokemonReplicate.generate(pokemonData);
         return pokemon;
     }
 
@@ -64,7 +65,7 @@ public class ShopEntry implements Serializable {
         return playerName;
     }
 
-    public PokemonData getPokemonIvs() {
+    public PokemonData getPokemonData() {
         return pokemonData;
     }
 
